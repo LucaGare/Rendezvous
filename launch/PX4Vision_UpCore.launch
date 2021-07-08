@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Interface the PX4 Vision with ROS
+-->
+<launch>
+
+    <arg name="uav_id" default="px4_quad"/>
+    <arg name="run_mocap" default="false"/>
+    <arg name="fcu_url" default="/dev/ttyUSB0:921600"/>
+    <!--arg name="fcu_url" default="udp://:14550@192.168.4.1:14555"/-->
+
+    
+    <group ns="$(arg uav_id)">
+        <!-- MAVROS -->
+        <include file="$(find mavros)/launch/px4.launch">
+            <arg name="fcu_url" value="$(arg fcu_url)"/>
+            <!--arg name="gcs_url" value=""/-->
+            <arg name="fcu_protocol" value="v1.0"/>
+        </include>
+
+        <!-- Forward odometry from motion capture system to PX4 Vision FCU -->
+        <node name="mocap_odometry_to_fcu" pkg="PX4Vision_AutonomousLanding" type="mocap_odometry_to_fcu" output="screen">
+            <remap from="mocap_odom" to="/qualisys/$(arg uav_id)/odom"/>
+        </node>
+    </group>
+
+    <!-- Run motion capture node for localization if argument is set -->
+    <group if="$(arg run_mocap)">
+        <include file="$(find mocap_qualisys)/launch/qualisys.launch" >
+            <param name="publish_tf" value="false" />
+        </include>
+    </group>
+    
+</launch>

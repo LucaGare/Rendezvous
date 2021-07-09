@@ -14,7 +14,6 @@ Runs an MPC algorithm, sending attitude setpoint to the FCU.
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
-#include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/AttitudeTarget.h>
@@ -54,14 +53,12 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
             ("px4_quad/mavros/state", 10, state_cb);
-    ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
-            ("px4_quad/mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("px4_quad/mavros/set_mode");
     ros::Subscriber pose = nh.subscribe<geometry_msgs::PoseStamped>
-            ("px4_quad/mavros/local_position/pose", 100, pose_cb);
+            ("/qualisys/px4_quad/pose", 100, pose_cb);
     ros::Subscriber velocity = nh.subscribe<geometry_msgs::TwistStamped>
-            ("px4_quad/mavros/local_position/velocity_local", 100, velocity_cb); 
+            ("/qualisys/px4_quad/velocity", 100, velocity_cb); 
     ros::Publisher setpoint_pub = nh.advertise<mavros_msgs::AttitudeTarget>
             ("px4_quad/mavros/setpoint_raw/attitude", 100);
 

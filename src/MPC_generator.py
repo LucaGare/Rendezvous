@@ -11,25 +11,24 @@ kYaw = 1.
 tauRoll = .15                           # Attitude dynamics time constants
 tauPitch = .11
 tauYaw = .32
-#Q = diag([6, 6, 1, 5, 5, 1])            # State penalty (velocity and attitude)
 Q = diag([6, 6, 6, 5, 5, 1])
 Qe = diag([30, 30, 6])                  # State penalty (relative position between drone and rendezvous point)
 R = diag([1, 1, 1, 1])                  # Control penalty
-QN = diag([17.4, 17.7, 8.1, 1.1, 1.2, 3.3, 0.4, 0.3, 0.1])
-QN[0,3] = 2.0
-QN[3,0] = 2.0
-QN[0,7] = .6
-QN[7,0] = .6
-QN[1,4] = 2.2
-QN[4,1] = 2.2
-QN[1,6] = -0.8
-QN[6,1] = -0.8
-QN[2,5] = 2.4
-QN[5,2] = 2.4
-QN[3,7] = .4
-QN[7,3] = .4
-QN[4,6] = -.5
-QN[6,4] = -.5
+P = diag([17.4, 17.7, 8.1, 1.1, 1.2, 3.3, 0.4, 0.3, 0.1])
+P[0,3] = 2.0
+P[3,0] = 2.0
+P[0,7] = .6
+P[7,0] = .6
+P[1,4] = 2.2
+P[4,1] = 2.2
+P[1,6] = -0.8
+P[6,1] = -0.8
+P[2,5] = 2.4
+P[5,2] = 2.4
+P[3,7] = .4
+P[7,3] = .4
+P[4,6] = -.5
+P[6,4] = -.5
 
 # Declare model variables
 x = MX.sym('x', 9, 1)                   # State vector
@@ -90,13 +89,15 @@ s = opti.parameter(3,1)                 # Optimization parameter (desired final 
 
 cost = 0                                # Cost initialization
 opti.subject_to(x[:,0] == p)            # Fix initial state
-for k in range(N):
+for k in range(N-1):
     x_next, c = F(x[:,k],u[:,k],T/N,s)
     cost = cost + c
     opti.subject_to(x[:,k+1] == x_next) # Enforce dynamic model
-XN = vertcat(x_next[0], x_next[1], x_next[2]) - s
-XN = vertcat(XN, x_next[3], x_next[4], x_next[5], x_next[6], x_next[7], x_next[8])
-cost = cost + transpose(XN) @ QN @ XN
+x_end, c = F(x[:,N-1],u[:,N-1],T/N,s) 
+XN = vertcat(x_end[0], x_end[1], x_end[2]) - s
+XN = vertcat(XN, x_end[3], x_end[4], x_end[5], x_end[6], x_end[7], x_end[8])
+opti.subject_to(x[:,N] == x_end)
+cost = cost + transpose(XN) @ P @ XN
 opti.minimize(cost)                     # Optimization objective
 
 px = x[0,:]                             # Horizontal x position
@@ -117,14 +118,12 @@ opti.subject_to(opti.bounded(-1.1,px,1.1))      # Enforce constraint on horizont
 opti.subject_to(opti.bounded(-1.5,py,1))        # Enforce constraint on horizontal y position
 opti.subject_to(opti.bounded(0,pz,2))           # Enforce constraint on vertical position
 opti.subject_to(opti.bounded(-2,vx,2))          # Enforce constraint on horizontal x velocity (replace constraint on max speed)
-opti.subject_to(opti.bounded(-2,vy,2))          # Enforce constraint on horizontal y velocity (replace constraint on max speed)
-#opti.subject_to(opti.bounded(-0.7,vz,0.5))      # Enforce constraint on vertical velocity
-opti.subject_to(opti.bounded(-0.4,vz,0.5))
+opti.subject_to(opti.bounded(-2,vy,2))          # Enforce constraint on horizontal y velocity (replace constraint on max speed) 
+opti.subject_to(opti.bounded(-0.4,vz,0.5))      # Enforce constraint on vertical velocity
 opti.subject_to(opti.bounded(-.5,roll,.5))      # Enforce constraint on roll angle
 opti.subject_to(opti.bounded(-.5,pitch,.5))     # Enforce constraint on pitch angle
 
-#opti.subject_to(opti.bounded(-1,az_cmd,1))      # Enforce constraint on commanded vertical acceleration
-opti.subject_to(opti.bounded(-.5,az_cmd,.5))
+opti.subject_to(opti.bounded(-.5,az_cmd,.5))    # Enforce constraint on commanded vertical acceleration
 opti.subject_to(opti.bounded(-.5,roll_cmd,.5))  # Enforce constraint on commanded roll angle
 opti.subject_to(opti.bounded(-.5,pitch_cmd,.5)) # Enforce constraint on commanded pitch angle
                 

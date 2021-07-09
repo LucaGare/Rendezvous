@@ -1,7 +1,6 @@
-
 <?xml version="1.0"?>
 <package format="2">
-  <name>PX4Vision_AutonomousLanding</name>
+  <name>Rendezvous</name>
   <version>1.0.0</version>
   <description>PX4 Vision and Nexus robot rendezvous</description>
 

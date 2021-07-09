@@ -69,12 +69,14 @@ s = opti.parameter(2,1)                 # Optimization parameter (desired final 
 cost = 0                                # Cost initialization
 opti.subject_to(x[:,0] == p)            # Fix initial state
 
-for k in range(N):
+for k in range(N-1):
     x_next, c = F(x[:,k],u[:,k],T/N,s)
     cost = cost + c
     opti.subject_to(x[:,k+1] == x_next) # Enforce dynamic model
-XN = vertcat(x_next[0], x_next[1]) - s
-XN = vertcat(XN, x_next[2], x_next[3])
+x_end, c = F(x[:,N-1],u[:,N-1],T/N,s)   
+XN = vertcat(x_end[0], x_end[1]) - s
+XN = vertcat(XN, x_end[2], x_end[3])
+opti.subject_to(x[:,N] == x_end)
 cost = cost + transpose(XN) @ P @ XN
 opti.minimize(cost)                     # Optimization objective
 

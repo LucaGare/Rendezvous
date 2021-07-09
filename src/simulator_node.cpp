@@ -45,23 +45,23 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
     
     ros::Subscriber UAVsetpoint_sub = nh.subscribe<mavros_msgs::AttitudeTarget>
-            ("px4_quad/mavros/setpoint_raw/attitude", 10, UAVsetpoint_cb);
+            ("/px4_quad/mavros/setpoint_raw/attitude", 10, UAVsetpoint_cb);
     ros::Subscriber UGVsetpoint_sub = nh.subscribe<geometry_msgs::Twist>
-            ("nexus1/cmd_vel", 10, UGVsetpoint_cb);
+            ("/nexus1/cmd_vel", 10, UGVsetpoint_cb);
     ros::Publisher UAVstate_pub = nh.advertise<mavros_msgs::State>
-            ("px4_quad/mavros/state", 100);
+            ("/px4_quad/mavros/state", 100);
     ros::Publisher UAVpose_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("/qualisys/px4_quad/pose", 100);
     ros::Publisher UAVvelocity_pub = nh.advertise<geometry_msgs::TwistStamped>
             ("/qualisys/px4_quad/velocity", 100);
     ros::Publisher initial_UAVpose_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("px4_quad/initial_pose", 100);
+            ("/px4_quad/initial_pose", 100);
     ros::Publisher UGVpose_pub = nh.advertise<geometry_msgs::PoseStamped>
             ("/qualisys/nexus1/pose", 100);                 
     ros::Publisher UGVvelocity_pub = nh.advertise<geometry_msgs::TwistStamped>
             ("/qualisys/nexus1/velocity", 100);             
     ros::Publisher initial_UGVpose_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("nexus1/initial_pose", 100);
+            ("/nexus1/initial_pose", 100);
 
     // Publication rate
     ros::Rate rate(100.0);

@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     ros::Subscriber UGVvelocity = nh.subscribe<geometry_msgs::TwistStamped>
             ("/qualisys/nexus1/velocity", 100, UGVvelocity_cb); 
     ros::Publisher UGVsetpoint_pub = nh.advertise<geometry_msgs::Twist>
-            ("nexus1/cmd_vel", 100);
+            ("/nexus1/cmd_vel", 100);
 
     // setpoint publishing rate
     ros::Rate rate(40.0);

@@ -10,7 +10,7 @@
     <node name="UGV_controller" pkg="Rendezvous" type="UGVoffboard_node">
         <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
         <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
-        <remap from="nexus1/cmd_vel" to="$(arg ugv_id)/cmd_vel"/>
+        <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
     </node>
 
     <group unless="$(arg run_simulation)">
@@ -23,9 +23,10 @@
         <node name="simulator" pkg="Rendezvous" type="simulator_node" output="screen">
             <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
             <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
-            <remap from="nexus1/cmd_vel" to="$(arg ugv_id)/cmd_vel"/>
+            <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
+	    <remap from="/nexus1/initial_pose" to="/$(arg ugv_id)/initial_pose"/>
         </node>
-        <!--node name="rviz" pkg="rviz" type="rviz" args="-d $(find Rendezvous)/rendezvous.rviz"/-->
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find Rendezvous)/rendezvous.rviz"/>
         <node name="record" pkg="rosbag" type="record" args="-j -O rendezvous_simulation.bag -a"/>
     </group>
 

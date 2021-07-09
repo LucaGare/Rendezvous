@@ -1,0 +1,22 @@
+<launch>
+    <!-- Start everything with nexus5 namespace -->
+    <arg name="robot_name" default="nexus5" />
+    <group ns="$(arg robot_name)">
+        <!-- Set TF prefix -->
+        <param name="tf_prefix" value="nexus5" />
+
+        <!-- Robot description and robot state publisher -->
+        <include file="$(find sml_nexus_description)/launch/sml_nexus_description.launch"/>
+
+        <!-- Load wheel controllers tuning parameters -->
+        <rosparam file="$(find sml_nexus_robot)/config/pid_params_nexus0.yaml" command="load" />
+
+        <!-- Low-level controller (Arduino bridge) -->
+        <node name="rosserial_$(arg robot_name)" pkg="rosserial_python" type="serial_node.py" output="screen" required="true">
+            <param name="port" value="/dev/ttyACM0"/>
+        </node>
+
+        <!-- Odometry -->
+        <node name="odometry_broadcaster" pkg="sml_nexus_robot" type="odometry_broadcaster" output="screen" required="true" />
+    </group>
+</launch>

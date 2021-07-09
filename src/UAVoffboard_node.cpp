@@ -52,15 +52,15 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
-            ("px4_quad/mavros/state", 10, state_cb);
+            ("/px4_quad/mavros/state", 10, state_cb);
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
-            ("px4_quad/mavros/set_mode");
+            ("/px4_quad/mavros/set_mode");
     ros::Subscriber pose = nh.subscribe<geometry_msgs::PoseStamped>
             ("/qualisys/px4_quad/pose", 100, pose_cb);
     ros::Subscriber velocity = nh.subscribe<geometry_msgs::TwistStamped>
             ("/qualisys/px4_quad/velocity", 100, velocity_cb); 
     ros::Publisher setpoint_pub = nh.advertise<mavros_msgs::AttitudeTarget>
-            ("px4_quad/mavros/setpoint_raw/attitude", 100);
+            ("/px4_quad/mavros/setpoint_raw/attitude", 100);
 
     // NOTE: the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(40.0);

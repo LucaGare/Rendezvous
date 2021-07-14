@@ -67,7 +67,7 @@ int main(int argc, char **argv){
     ros::Rate rate(100.0);
 
     // Set initial state vectors x0
-    std::vector<double> x0_UAV = {0, 0, 1, 0, 0, 0, .1, .1, .3};
+    std::vector<double> x0_UAV = {1, -1.3, 1, 0, 0, 0, .1, .1, .3};
     std::vector<double> x0_UGV = {-1., 0.9, 0., 0.};
     eulerAngles current_ea;
     current_ea.roll  = x0_UAV[6];

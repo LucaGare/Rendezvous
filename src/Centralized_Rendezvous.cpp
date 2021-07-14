@@ -93,7 +93,7 @@ int main(int argc, char **argv)
             UGV_arrived = false;
             for (int i=0; i<N+1; ++i){
                 // check when the UAV predicts to reach the setpoint
-                if( !UAV_arrived && (UAV_predicted.data[i].z - rendezvous_point.z) < 0.15){
+                if( !UAV_arrived && (UAV_predicted.data[i].z - rendezvous_point.z) < 0.3){
                     if(abs(UAV_predicted.data[i].x - rendezvous_point.x) < 0.05 && abs(UAV_predicted.data[i].y - rendezvous_point.y) < 0.05){
                        UAV_arrival_time = i;
                        UAV_arrived = true;
@@ -118,16 +118,16 @@ int main(int argc, char **argv)
                 // CASE 1: neither the UAV nor the UGV reached the setpoint within the control horizon
                 rendezvous_point.x = (UAV_predicted.data[N].x + UGV_predicted.data[N].x)/2;
                 rendezvous_point.y = (UAV_predicted.data[N].y + UGV_predicted.data[N].y)/2;
-            }else if( UAV_arrived && UAV_arrival_time < (UGV_arrival_time - 3)){
-                // CASE 2: UAV reaches setpoint within control horizon and before UGV by at least 3 control steps (0.6s)
+            }else if( UAV_arrived && UAV_arrival_time < (UGV_arrival_time - 2)){
+                // CASE 2: UAV reaches setpoint within control horizon and before UGV by at least 2 control steps (0.4s)
                 rendezvous_point.x = (UAV_predicted.data[UAV_arrival_time].x + UGV_predicted.data[UAV_arrival_time].x)/2;
                 rendezvous_point.y = (UAV_predicted.data[UAV_arrival_time].y + UGV_predicted.data[UAV_arrival_time].y)/2;
-            }else if( UGV_arrived && UGV_arrival_time < (UAV_arrival_time - 3)){
-                // CASE 3: UGV reaches setpoint within control horizon and before UAV by at least 3 control steps (0.6s)
+            }else if( UGV_arrived && UGV_arrival_time < (UAV_arrival_time - 2)){
+                // CASE 3: UGV reaches setpoint within control horizon and before UAV by at least 2 control steps (0.4s)
                 rendezvous_point.x = (UAV_predicted.data[UGV_arrival_time].x + UGV_predicted.data[UGV_arrival_time].x)/2;
                 rendezvous_point.y = (UAV_predicted.data[UGV_arrival_time].y + UGV_predicted.data[UGV_arrival_time].y)/2;
             }
-            // CASE 4: both UAV and UGV reached setpoint, the second reached the setpoint within 3 control steps (0.6s) 
+            // CASE 4: both UAV and UGV reached setpoint, the second reached the setpoint within 2 control steps (0.4s) 
             // after the first: the rendezvous point does not need to be updated.
         }
 

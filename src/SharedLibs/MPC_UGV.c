@@ -133,6 +133,7 @@ extern "C" {
 #define casadi_s3 CASADI_PREFIX(s3)
 #define casadi_s30 CASADI_PREFIX(s30)
 #define casadi_s31 CASADI_PREFIX(s31)
+#define casadi_s32 CASADI_PREFIX(s32)
 #define casadi_s4 CASADI_PREFIX(s4)
 #define casadi_s5 CASADI_PREFIX(s5)
 #define casadi_s6 CASADI_PREFIX(s6)
@@ -1554,6 +1555,7 @@ static const casadi_int casadi_s28[332] = {155, 321, 163, 326, 149, 315, 154, 32
 static const casadi_int casadi_s29[332] = {227, 228, 80, 270, 82, 311, 122, 206, 269, 204, 78, 310, 76, 226, 200, 202, 268, 120, 74, 309, 72, 225, 196, 198, 267, 118, 70, 308, 68, 224, 192, 194, 266, 116, 66, 307, 64, 223, 188, 190, 265, 114, 62, 306, 60, 222, 184, 186, 264, 112, 58, 305, 56, 221, 180, 182, 263, 110, 54, 304, 52, 220, 176, 178, 262, 108, 50, 303, 48, 219, 172, 174, 261, 106, 46, 302, 44, 218, 168, 170, 260, 104, 42, 301, 40, 217, 164, 166, 259, 102, 38, 300, 36, 216, 160, 162, 258, 100, 34, 299, 32, 215, 156, 158, 257, 98, 30, 298, 28, 214, 152, 154, 256, 96, 26, 297, 24, 213, 148, 150, 255, 94, 22, 296, 20, 212, 144, 146, 254, 92, 18, 295, 16, 211, 140, 142, 253, 90, 14, 294, 12, 210, 136, 138, 252, 88, 10, 293, 8, 209, 132, 134, 251, 86, 6, 124, 208, 292, 4, 2, 128, 84, 126, 130, 250, 0, 248, 249, 81, 291, 83, 331, 123, 207, 290, 205, 79, 330, 77, 247, 201, 203, 289, 121, 75, 329, 73, 246, 197, 199, 288, 119, 71, 328, 69, 245, 193, 195, 287, 117, 67, 327, 65, 244, 189, 191, 286, 115, 63, 326, 61, 243, 185, 187, 285, 113, 59, 325, 57, 242, 181, 183, 284, 111, 55, 324, 53, 241, 177, 179, 283, 109, 51, 323, 49, 240, 173, 175, 282, 107, 47, 322, 45, 239, 169, 171, 281, 105, 43, 321, 41, 238, 165, 167, 280, 103, 39, 320, 37, 237, 161, 163, 279, 101, 35, 319, 33, 236, 157, 159, 278, 99, 31, 318, 29, 235, 153, 155, 277, 97, 27, 317, 25, 234, 149, 151, 276, 95, 23, 316, 21, 233, 145, 147, 275, 93, 19, 315, 17, 232, 141, 143, 274, 91, 15, 314, 13, 231, 137, 139, 273, 89, 11, 313, 9, 230, 133, 135, 272, 87, 7, 125, 229, 312, 1, 3, 5, 127, 129, 131, 271, 85};
 static const casadi_int casadi_s30[8] = {4, 1, 0, 4, 0, 1, 2, 3};
 static const casadi_int casadi_s31[6] = {2, 1, 0, 2, 0, 1};
+static const casadi_int casadi_s32[25] = {21, 1, 0, 21, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
 static const casadi_real casadi_c0[8] = {9.5999999999999996e+00, 5.0000000000000000e-01, 9.9000000000000004e+00, 5.0000000000000000e-01, 5.0000000000000000e-01, 1.0000000000000001e-01, 5.0000000000000000e-01, 1.0000000000000001e-01};
 
@@ -11449,23 +11451,33 @@ static int casadi_f1(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   return 0;
 }
 
-/* helper:(i0[124],i1[6],i2[208])->(o0[2]) */
+/* helper:(i0[124],i1[6],i2[208])->(o0[2],o1[21],o2[21]) */
 static int casadi_f15(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_real *rr, *ss;
-  casadi_real *w0=w+0, *w1=w+40;
+  casadi_real *w0=w+0, *w1=w+40, *w2=w+42, *w3=w+126;
   /* #0: @0 = input[0][1] */
   casadi_copy(arg[0] ? arg[0]+84 : 0, 40, w0);
   /* #1: @1 = @0[:2] */
   for (rr=w1, ss=w0+0; ss!=w0+2; ss+=1) *rr++ = *ss;
   /* #2: output[0][0] = @1 */
   casadi_copy(w1, 2, res[0]);
+  /* #3: @2 = input[0][0] */
+  casadi_copy(arg[0], 84, w2);
+  /* #4: @3 = @2[:84:4] */
+  for (rr=w3, ss=w2+0; ss!=w2+84; ss+=4) *rr++ = *ss;
+  /* #5: output[1][0] = @3 */
+  casadi_copy(w3, 21, res[1]);
+  /* #6: @3 = @2[1:85:4] */
+  for (rr=w3, ss=w2+1; ss!=w2+85; ss+=4) *rr++ = *ss;
+  /* #7: output[2][0] = @3 */
+  casadi_copy(w3, 21, res[2]);
   return 0;
 }
 
-/* MPC_UGV:(x0[4],Setpoint[2])->(controlAction[2]) */
+/* MPC_UGV:(x0[4],Setpoint[2])->(controlAction[2],predicted_x[21],predicted_y[21]) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_int i;
-  casadi_real **res1=res+1, *rr;
+  casadi_real **res1=res+3, *rr;
   const casadi_real **arg1=arg+2, *cs;
   casadi_real *w0=w+12389, *w1=w+12513, *w2=w+12517, *w3=w+12519, *w4=w+12525, *w5=w+12649, *w6=w+12773, *w7=w+12777, *w8=w+12781, *w9=w+12785, *w10=w+12789, *w11=w+12793, *w12=w+12797, *w13=w+12801, *w14=w+12805, *w15=w+12809, *w16=w+12813, *w17=w+12817, *w18=w+12821, *w19=w+12825, *w20=w+12829, *w21=w+12833, *w22=w+12837, *w23=w+12841, *w24=w+12845, *w25=w+12849, *w26=w+12853, *w27=w+12874, *w28=w+12895, *w29=w+12916, *w30=w+12937, *w31=w+12957, *w32=w+12977, *w33=w+13185, *w34=w+13393, *w35=w+13517, *w36=w+13725, *w37=w+13849;
   /* #0: @0 = zeros(124x1) */
@@ -11624,14 +11636,20 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   res1[4]=w37;
   res1[5]=0;
   if (casadi_f1(arg1, res1, iw, w, 0)) return 1;
-  /* #43: @2 = helper(@36, @3, @37) */
+  /* #43: {@2, @26, @27} = helper(@36, @3, @37) */
   arg1[0]=w36;
   arg1[1]=w3;
   arg1[2]=w37;
   res1[0]=w2;
+  res1[1]=w26;
+  res1[2]=w27;
   if (casadi_f15(arg1, res1, iw, w, 0)) return 1;
   /* #44: output[0][0] = @2 */
   casadi_copy(w2, 2, res[0]);
+  /* #45: output[1][0] = @26 */
+  casadi_copy(w26, 21, res[1]);
+  /* #46: output[2][0] = @27 */
+  casadi_copy(w27, 21, res[2]);
   return 0;
 }
 
@@ -11665,7 +11683,7 @@ CASADI_SYMBOL_EXPORT void MPC_UGV_decref(void) {
 
 CASADI_SYMBOL_EXPORT casadi_int MPC_UGV_n_in(void) { return 2;}
 
-CASADI_SYMBOL_EXPORT casadi_int MPC_UGV_n_out(void) { return 1;}
+CASADI_SYMBOL_EXPORT casadi_int MPC_UGV_n_out(void) { return 3;}
 
 CASADI_SYMBOL_EXPORT casadi_real MPC_UGV_default_in(casadi_int i){
   switch (i) {
@@ -11684,6 +11702,8 @@ CASADI_SYMBOL_EXPORT const char* MPC_UGV_name_in(casadi_int i){
 CASADI_SYMBOL_EXPORT const char* MPC_UGV_name_out(casadi_int i){
   switch (i) {
     case 0: return "controlAction";
+    case 1: return "predicted_x";
+    case 2: return "predicted_y";
     default: return 0;
   }
 }
@@ -11699,13 +11719,15 @@ CASADI_SYMBOL_EXPORT const casadi_int* MPC_UGV_sparsity_in(casadi_int i) {
 CASADI_SYMBOL_EXPORT const casadi_int* MPC_UGV_sparsity_out(casadi_int i) {
   switch (i) {
     case 0: return casadi_s31;
+    case 1: return casadi_s32;
+    case 2: return casadi_s32;
     default: return 0;
   }
 }
 
 CASADI_SYMBOL_EXPORT int MPC_UGV_work(casadi_int *sz_arg, casadi_int* sz_res, casadi_int *sz_iw, casadi_int *sz_w) {
   if (sz_arg) *sz_arg = 54;
-  if (sz_res) *sz_res = 38;
+  if (sz_res) *sz_res = 40;
   if (sz_iw) *sz_iw = 1660;
   if (sz_w) *sz_w = 14057;
   return 0;

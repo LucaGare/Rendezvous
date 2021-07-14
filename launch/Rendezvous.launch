@@ -11,7 +11,9 @@
         <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
         <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
         <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
+	<remap from="/nexus1/trajectory" to="/$(arg ugv_id)/trajectory"/>
     </node>
+    <node name="Coordinator" pkg="Rendezvous" type="centralized_rendezvous"/>
 
     <group unless="$(arg run_simulation)">
         <!-- TODO -->
@@ -20,7 +22,7 @@
 
     <!-- Run simulation if argument is set-->
     <group ns="simulation" if="$(arg run_simulation)">
-        <node name="simulator" pkg="Rendezvous" type="simulator_node" output="screen">
+        <node name="simulator" pkg="Rendezvous" type="simulator_node"> <!--output="screen"-->
             <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
             <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
             <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>

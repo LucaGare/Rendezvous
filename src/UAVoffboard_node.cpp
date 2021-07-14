@@ -14,9 +14,11 @@ Runs an MPC algorithm, sending attitude setpoint to the FCU.
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/Point.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/AttitudeTarget.h>
+#include <Rendezvous/Trajectory.h>
 
 struct eulerAngles {
     double roll,pitch,yaw;
@@ -33,8 +35,9 @@ geometry_msgs::Quaternion quat_from_euler(eulerAngles ea);
 double thrust_from_verticalVelocityCommand(double vz_dot_cmd, state_vector x);
 
 mavros_msgs::State          current_state;
-geometry_msgs::PoseStamped  current_pose;
+geometry_msgs::PoseStamped  current_pose, UGVcurrent_pose;
 geometry_msgs::TwistStamped current_velocity;
+geometry_msgs::Point        current_rendezvous;
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
@@ -42,8 +45,14 @@ void state_cb(const mavros_msgs::State::ConstPtr& msg){
 void pose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
     current_pose = *msg;
 }
+void UGVpose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
+    UGVcurrent_pose = *msg;
+}
 void velocity_cb(const geometry_msgs::TwistStamped::ConstPtr& msg){
     current_velocity = *msg;
+}
+void rendezvous_point_cb(const geometry_msgs::Point::ConstPtr& msg){
+    current_rendezvous = *msg;
 }
 
 int main(int argc, char **argv)
@@ -57,10 +66,16 @@ int main(int argc, char **argv)
             ("/px4_quad/mavros/set_mode");
     ros::Subscriber pose = nh.subscribe<geometry_msgs::PoseStamped>
             ("/qualisys/px4_quad/pose", 100, pose_cb);
+    ros::Subscriber UGVpose = nh.subscribe<geometry_msgs::PoseStamped>
+            ("/qualisys/nexus5/pose", 100, UGVpose_cb);
     ros::Subscriber velocity = nh.subscribe<geometry_msgs::TwistStamped>
-            ("/qualisys/px4_quad/velocity", 100, velocity_cb); 
+            ("/qualisys/px4_quad/velocity", 100, velocity_cb);
+    ros::Subscriber rendezvous_point = nh.subscribe<geometry_msgs::Point>
+            ("/rendezvous_point", 100, rendezvous_point_cb);
     ros::Publisher setpoint_pub = nh.advertise<mavros_msgs::AttitudeTarget>
             ("/px4_quad/mavros/setpoint_raw/attitude", 100);
+    ros::Publisher predicted_trajectory_pub = nh.advertise<Rendezvous::Trajectory>
+            ("/px4_quad/trajectory", 100);
 
     // NOTE: the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(40.0);
@@ -73,7 +88,7 @@ int main(int argc, char **argv)
     std::cout<< "FCU connected." << std::endl;
 
     // Initialize things for the MPC algorithm
-    std::string const package_path = ros::package::getPath("PX4Vision_AutonomousLanding");
+    std::string const package_path = ros::package::getPath("Rendezvous");
     std::string const library_path = package_path + "/src/SharedLibs/MPC.so";
     /* Handle to the dll */
     void* handle;
@@ -140,14 +155,18 @@ int main(int argc, char **argv)
 
     // First instance of the MPC
     /* Function input and output */
+    int N = 20; // Control horizon
     state_vector current_state_vector = stateVector_from_subs(current_pose, current_velocity);
     const double x0[] = {current_state_vector.position.x, current_state_vector.position.y,
                                 current_state_vector.position.z, current_state_vector.linearVelocity.x, 
                                 current_state_vector.linearVelocity.y, current_state_vector.linearVelocity.z,
                                 current_state_vector.orientation.roll, current_state_vector.orientation.pitch, 
                                 current_state_vector.orientation.yaw};
-    const double DesiredFinalPosition[] = {0.9, -1.2, 0.14};
+    const double DesiredFinalPosition[] = {current_rendezvous.x, current_rendezvous.y, current_rendezvous.z};
     double ControlAction[4];
+    double PredictedX[N+1];
+    double PredictedY[N+1];
+    double PredictedZ[N+1];
 
     // Allocate memory (thread-safe)
     incref();
@@ -156,6 +175,9 @@ int main(int argc, char **argv)
     arg[0] = x0;
     arg[1] = DesiredFinalPosition;
     res[0] = ControlAction;
+    res[1] = PredictedX;
+    res[2] = PredictedY;
+    res[3] = PredictedZ;
 
     // Checkout thread-local memory (not thread-safe)
     // Note MAX_NUM_THREADS
@@ -178,15 +200,24 @@ int main(int argc, char **argv)
     setpoint.type_mask       = 7; // ignore body_rates
     setpoint.orientation     = q_cmd;
     setpoint.thrust          = thrust_from_verticalVelocityCommand(ControlAction[0],current_state_vector);
+    geometry_msgs::Point point;
+    Rendezvous::Trajectory predicted_trajectory;
+    for(int i=0; i<N+1; ++i){
+        point.x = PredictedX[i];
+        point.y = PredictedY[i];
+        point.z = PredictedZ[i];
+        predicted_trajectory.data.push_back(point);
+    }
 
     /* Free memory (thread-safe) */
     decref();
 
-    // Start streaming the setpoints before starting
+    // Start streaming the setpoints and predicted trajectory before starting
     static unsigned int sequenceNumber = 1;
     setpoint.header.stamp = ros::Time::now();
     setpoint.header.seq = sequenceNumber;
     setpoint_pub.publish(setpoint);
+    predicted_trajectory_pub.publish(predicted_trajectory);
 
     // Switch to offboard node and arm the UAV
     mavros_msgs::SetMode offb_set_mode;
@@ -212,6 +243,7 @@ int main(int argc, char **argv)
                             current_state_vector.linearVelocity.y, current_state_vector.linearVelocity.z,
                             current_state_vector.orientation.roll, current_state_vector.orientation.pitch, 
                             current_state_vector.orientation.yaw};
+        const double DesiredFinalPosition[] = {current_rendezvous.x, current_rendezvous.y, current_rendezvous.z};
 
         // Allocate memory (thread-safe)
         incref();
@@ -220,6 +252,9 @@ int main(int argc, char **argv)
         arg[0] = x0;
         arg[1] = DesiredFinalPosition;
         res[0] = ControlAction;
+        res[1] = PredictedX;
+        res[2] = PredictedY;
+        res[3] = PredictedZ;
 
         // Checkout thread-local memory (not thread-safe)
         // Note MAX_NUM_THREADS
@@ -237,6 +272,13 @@ int main(int argc, char **argv)
         q_cmd = quat_from_euler(ea_cmd);
         setpoint.orientation = q_cmd;
         setpoint.thrust      = thrust_from_verticalVelocityCommand(ControlAction[0],current_state_vector);
+        Rendezvous::Trajectory predicted_trajectory;
+        for(int i=0; i<N+1; ++i){
+            point.x = PredictedX[i];
+            point.y = PredictedY[i];
+            point.z = PredictedZ[i];
+            predicted_trajectory.data.push_back(point);
+        }
 
         /* Free memory (thread-safe) */
         decref();
@@ -244,7 +286,8 @@ int main(int argc, char **argv)
         // LANDING //
         // Stopping condition
         if( !stop && abs(current_pose.pose.position.z - DesiredFinalPosition[2]) < 0.1 ){
-            if(abs(current_pose.pose.position.x - DesiredFinalPosition[0]) < 0.05 && abs(current_pose.pose.position.y - DesiredFinalPosition[1]) < 0.05){
+//            if(abs(current_pose-pose.position.x - DesiredFinalPosition[0]) < 0.05 && abs(current_pose.pose.position.y - DesiredFinalPosition[1]) < 0.05){
+            if(abs(current_pose.pose.position.x - UGVcurrent_pose.pose.position.x) < 0.05 && abs(current_pose.pose.position.y - UGVcurrent_pose.pose.position.y) < 0.05){
                 stop = true;
             }
         }
@@ -258,6 +301,7 @@ int main(int argc, char **argv)
         setpoint.header.stamp = ros::Time::now();
         setpoint.header.seq = sequenceNumber;
         setpoint_pub.publish(setpoint);
+        predicted_trajectory_pub.publish(predicted_trajectory);
 
         ros::spinOnce();
         rate.sleep();

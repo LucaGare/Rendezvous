@@ -13,16 +13,28 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   geometry_msgs
   mavros_msgs
+  message_generation
 )
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_message_files(
+  FILES
+  Trajectory.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES PX4Vision_AutonomousLanding
-  CATKIN_DEPENDS roscpp nav_msgs geometry_msgs mavros_msgs
+  CATKIN_DEPENDS roscpp nav_msgs geometry_msgs mavros_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -37,6 +49,9 @@ add_executable(UAVoffboard_node
 )
 add_executable(UGVoffboard_node
   src/UGVoffboard_node.cpp
+)
+add_executable(centralized_rendezvous
+  src/Centralized_Rendezvous.cpp
 )
 
 add_library(MPC SHARED IMPORTED)
@@ -66,4 +81,7 @@ target_link_libraries(UGVoffboard_node
    MPC_UGV
    ${CMAKE_DL_LIBS}
    ${catkin_LIBRARIES} 
+)
+target_link_libraries(centralized_rendezvous
+  ${catkin_LIBRARIES}
 )

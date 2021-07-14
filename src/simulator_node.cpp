@@ -68,7 +68,7 @@ int main(int argc, char **argv){
 
     // Set initial state vectors x0
     std::vector<double> x0_UAV = {0, 0, 1, 0, 0, 0, .1, .1, .3};
-    std::vector<double> x0_UGV = {-1., 0.9, 0.1, -0.3};
+    std::vector<double> x0_UGV = {-1., 0.9, 0., 0.};
     eulerAngles current_ea;
     current_ea.roll  = x0_UAV[6];
     current_ea.pitch = x0_UAV[7];
@@ -127,7 +127,7 @@ int main(int argc, char **argv){
     initial_UAVpose.pose.orientation = quat_from_euler(current_ea);
 
     // Initialize things for the integrator libraries
-    std::string const package_path = ros::package::getPath("PX4Vision_AutonomousLanding");
+    std::string const package_path = ros::package::getPath("Rendezvous");
     std::string const UAVlibrary_path = package_path + "/src/SharedLibs/rk4.so";
     std::string const UGVlibrary_path = package_path + "/src/SharedLibs/rk4_UGV.so";
     // Handle to the dlls

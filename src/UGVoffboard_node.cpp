@@ -12,9 +12,12 @@ Runs an MPC algorithm and sends velocity setpoint to the FCU.
 #include <string>
 #include <dlfcn.h>
 
+#include <mavros_msgs/State.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/Point.h>
+#include <Rendezvous/Trajectory.h>
 
 struct state_vector {
     double x,y,vx,vy;
@@ -22,14 +25,22 @@ struct state_vector {
 
 state_vector stateVector_from_subs(geometry_msgs::PoseStamped p, geometry_msgs::TwistStamped v);
 
+mavros_msgs::State          current_UAVstate;
 geometry_msgs::PoseStamped  current_pose;
 geometry_msgs::TwistStamped current_velocity;
+geometry_msgs::Point        current_rendezvous;
 
+void state_cb(const mavros_msgs::State::ConstPtr& msg){
+    current_UAVstate = *msg;
+}
 void UGVpose_cb(const geometry_msgs::PoseStamped::ConstPtr& msg){
     current_pose = *msg;
 }
 void UGVvelocity_cb(const geometry_msgs::TwistStamped::ConstPtr& msg){
     current_velocity = *msg;
+}
+void rendezvous_point_cb(const geometry_msgs::Point::ConstPtr& msg){
+    current_rendezvous = *msg;
 }
 
 int main(int argc, char **argv)
@@ -37,18 +48,30 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "offb_node");
     ros::NodeHandle nh;
 
+    ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
+            ("/px4_quad/mavros/state", 10, state_cb);
     ros::Subscriber UGVpose = nh.subscribe<geometry_msgs::PoseStamped>
             ("/qualisys/nexus1/pose", 100, UGVpose_cb);
     ros::Subscriber UGVvelocity = nh.subscribe<geometry_msgs::TwistStamped>
             ("/qualisys/nexus1/velocity", 100, UGVvelocity_cb); 
+    ros::Subscriber rendezvous_point = nh.subscribe<geometry_msgs::Point>
+            ("/rendezvous_point", 100, rendezvous_point_cb);
     ros::Publisher UGVsetpoint_pub = nh.advertise<geometry_msgs::Twist>
             ("/nexus1/cmd_vel", 100);
+    ros::Publisher predicted_trajectory_pub = nh.advertise<Rendezvous::Trajectory>
+            ("/nexus1/trajectory", 100);
 
     // setpoint publishing rate
     ros::Rate rate(40.0);
 
+    // wait for UAV to switch to offboard mode
+    while(current_UAVstate.mode != "OFFBOARD"){
+        ros::spinOnce();
+        rate.sleep();
+    }
+
     // Initialize things for the MPC algorithm
-    std::string const package_path = ros::package::getPath("PX4Vision_AutonomousLanding");
+    std::string const package_path = ros::package::getPath("Rendezvous");
     std::string const library_path = package_path + "/src/SharedLibs/MPC_UGV.so";
     /* Handle to the dll */
     void* handle;
@@ -115,11 +138,14 @@ int main(int argc, char **argv)
 
     // First instance of the MPC
     /* Function input and output */
+    int N = 20; // control horizon
     state_vector current_state_vector = stateVector_from_subs(current_pose, current_velocity);
     const double x0[] = {current_state_vector.x, current_state_vector.y,
                         current_state_vector.vx, current_state_vector.vy};
-    const double DesiredFinalPosition[] = {0., 0.};
+    const double DesiredFinalPosition[] = {current_rendezvous.x, current_rendezvous.y};
     double ControlAction[2];
+    double PredictedX[N+1];
+    double PredictedY[N+1];
 
     // Allocate memory (thread-safe)
     incref();
@@ -128,6 +154,8 @@ int main(int argc, char **argv)
     arg[0] = x0;
     arg[1] = DesiredFinalPosition;
     res[0] = ControlAction;
+    res[1] = PredictedX;
+    res[2] = PredictedY;
 
     // Checkout thread-local memory (not thread-safe)
     // Note MAX_NUM_THREADS
@@ -142,11 +170,27 @@ int main(int argc, char **argv)
     geometry_msgs::Twist setpoint;
     setpoint.linear.x = ControlAction[0];
     setpoint.linear.y = ControlAction[1];
+    geometry_msgs::Point point;
+    Rendezvous::Trajectory predicted_trajectory;
+    point.z = 0;    // TODO: update with the height of the platform
+    int a;
+    for(int i=0; i<N+1; ++i){
+        a = i;
+        point.x = PredictedX[a];
+        point.y = PredictedY[a];
+        predicted_trajectory.data.push_back(point);
+        std::cout<< "UGVoffboard_node reached line 182 for i = " << i << std::endl;
+        std::cout<< "At i = " << i << ": x = " << *(PredictedX + a) << ", y = " << *(PredictedY + a) << std::endl;
+    }
+
+    std::cout<< "UGVoffboard_node reached line 186! " << std::endl;
+    std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
 
     /* Free memory (thread-safe) */
     decref(); 
 
     UGVsetpoint_pub.publish(setpoint);
+    predicted_trajectory_pub.publish(predicted_trajectory);
 
     while(ros::ok()){
 
@@ -154,14 +198,23 @@ int main(int argc, char **argv)
         current_state_vector = stateVector_from_subs(current_pose, current_velocity);
         const double x0[] = {current_state_vector.x, current_state_vector.y,
                             current_state_vector.vx, current_state_vector.vy};
+        const double DesiredFinalPosition[] = {current_rendezvous.x, current_rendezvous.y};
 
         // Allocate memory (thread-safe)
         incref();
+
+        std::cout<< "UGVoffboard_node reached line 206! " << std::endl;
+        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
 
         /* Evaluate the function */
         arg[0] = x0;
         arg[1] = DesiredFinalPosition;
         res[0] = ControlAction;
+        res[1] = PredictedX;
+        res[2] = PredictedY;
+
+        std::cout<< "UGVoffboard_node reached line 216! " << std::endl;
+        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
 
         // Checkout thread-local memory (not thread-safe)
         // Note MAX_NUM_THREADS
@@ -173,13 +226,25 @@ int main(int argc, char **argv)
         // Release thread-local (not thread-safe)
         release(mem);
 
+        std::cout<< "UGVoffboard_node reached line 229! " << std::endl;
+        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
+
         setpoint.linear.x = ControlAction[0];
         setpoint.linear.y = ControlAction[1];
+        for(int i=0; i<N+1; ++i){
+            a = i;
+            point.x = PredictedX[a];
+            point.y = PredictedY[a];
+            predicted_trajectory.data[i] = point;
+            std::cout<< "UGVoffboard_node reached line 239 for i = " << i << std::endl;
+            std::cout<< "At i = " << i << ": x = " << *(PredictedX + a) << ", y = " << *(PredictedY + a) << std::endl;
+        }
 
         /* Free memory (thread-safe) */
         decref();
 
         UGVsetpoint_pub.publish(setpoint);
+        predicted_trajectory_pub.publish(predicted_trajectory);
 
         ros::spinOnce();
         rate.sleep();

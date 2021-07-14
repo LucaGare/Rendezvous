@@ -99,7 +99,7 @@ opts = {'qpsol': 'qrqp'}                # Setting the solver
 opti.solver('sqpmethod', opts)  
 
 # Code generation
-MPC_UGV = opti.to_function('MPC_UGV', [p, s], [u[:,0]], ['x0', 'Setpoint'], ['controlAction'])
+MPC_UGV = opti.to_function('MPC_UGV', [p, s], [u[:,0], transpose(px), transpose(py)], ['x0', 'Setpoint'], ['controlAction', 'predicted_x', 'predicted_y'])
 genOpts = {'with_header': False}
 MPC_UGV.generate('MPC_UGV', genOpts)
 print(MPC_UGV)

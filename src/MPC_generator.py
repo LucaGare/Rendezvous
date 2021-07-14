@@ -134,7 +134,7 @@ opts = {'qpsol': 'qrqp'}                # Setting the solver
 opti.solver('sqpmethod', opts)                  
 
 # Code generation
-MPC = opti.to_function('MPC', [p, s], [u[:,0]], ['x0', 'Setpoint'], ['controlAction'])
+MPC = opti.to_function('MPC', [p, s], [u[:,0], transpose(px), transpose(py), transpose(pz)], ['x0', 'Setpoint'], ['controlAction', 'predicted_x', 'predicted_y', 'predicted_z'])
 genOpts = {'with_header': False}
 MPC.generate('MPC', genOpts)
 print(MPC)

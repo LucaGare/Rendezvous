@@ -19,8 +19,7 @@ int N = 20; // control horizon
 
 mavros_msgs::State          current_state;
 geometry_msgs::PoseStamped  initial_UAVpose, initial_UGVpose;
-Rendezvous::Trajectory      UAV_predicted;
-Rendezvous::Trajectory      UGV_predicted;
+Rendezvous::Trajectory      UAV_predicted, UGV_predicted;
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
@@ -91,6 +90,8 @@ int main(int argc, char **argv)
         }else{
             UAV_arrived = false;
             UGV_arrived = false;
+            UAV_arrival_time = 2*N;
+            UGV_arrival_time = 2*N;
             for (int i=0; i<N+1; ++i){
                 // check when the UAV predicts to reach the setpoint
                 if( !UAV_arrived && (UAV_predicted.data[i].z - rendezvous_point.z) < 0.3){

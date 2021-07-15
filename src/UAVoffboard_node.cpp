@@ -277,7 +277,7 @@ int main(int argc, char **argv)
             point.x = PredictedX[i];
             point.y = PredictedY[i];
             point.z = PredictedZ[i];
-            predicted_trajectory.data.push_back(point);
+            predicted_trajectory.data[i] = point;
         }
 
         /* Free memory (thread-safe) */

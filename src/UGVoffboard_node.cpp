@@ -173,14 +173,12 @@ int main(int argc, char **argv)
     geometry_msgs::Point point;
     Rendezvous::Trajectory predicted_trajectory;
     point.z = 0;    // TODO: update with the height of the platform
-    int a;
     for(int i=0; i<N+1; ++i){
-        a = i;
-        point.x = PredictedX[a];
-        point.y = PredictedY[a];
+        point.x = PredictedX[i];
+        point.y = PredictedY[i];
         predicted_trajectory.data.push_back(point);
         std::cout<< "UGVoffboard_node reached line 182 for i = " << i << std::endl;
-        std::cout<< "At i = " << i << ": x = " << *(PredictedX + a) << ", y = " << *(PredictedY + a) << std::endl;
+        std::cout<< "At i = " << i << ": x = " << *(PredictedX + i) << ", y = " << *(PredictedY + i) << std::endl;
     }
 
     std::cout<< "UGVoffboard_node reached line 186! " << std::endl;
@@ -232,12 +230,11 @@ int main(int argc, char **argv)
         setpoint.linear.x = ControlAction[0];
         setpoint.linear.y = ControlAction[1];
         for(int i=0; i<N+1; ++i){
-            a = i;
-            point.x = PredictedX[a];
-            point.y = PredictedY[a];
+            point.x = PredictedX[i];
+            point.y = PredictedY[i];
             predicted_trajectory.data[i] = point;
             std::cout<< "UGVoffboard_node reached line 239 for i = " << i << std::endl;
-            std::cout<< "At i = " << i << ": x = " << *(PredictedX + a) << ", y = " << *(PredictedY + a) << std::endl;
+            std::cout<< "At i = " << i << ": x = " << *(PredictedX + i) << ", y = " << *(PredictedY + i) << std::endl;
         }
 
         /* Free memory (thread-safe) */
@@ -265,4 +262,4 @@ state_vector stateVector_from_subs(geometry_msgs::PoseStamped p, geometry_msgs::
     state.vy = v.twist.linear.y;
 
     return state;
-};
+}

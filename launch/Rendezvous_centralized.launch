@@ -13,6 +13,7 @@
         <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
 	<remap from="/nexus1/trajectory" to="/$(arg ugv_id)/trajectory"/>
     </node>
+    <node name="Coordinator" pkg="Rendezvous" type="centralized_rendezvous"/>
 
     <group unless="$(arg run_simulation)">
         <!-- TODO -->

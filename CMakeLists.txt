@@ -50,9 +50,9 @@ add_executable(UAVoffboard_node
 add_executable(UGVoffboard_node
   src/UGVoffboard_node.cpp
 )
-#add_executable(centralized_rendezvous
-#  src/Centralized_Rendezvous.cpp
-#)
+add_executable(centralized_rendezvous
+  src/Centralized_Rendezvous.cpp
+)
 
 add_library(MPC SHARED IMPORTED)
 set_target_properties(MPC PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/SharedLibs/MPC.so)
@@ -82,6 +82,6 @@ target_link_libraries(UGVoffboard_node
    ${CMAKE_DL_LIBS}
    ${catkin_LIBRARIES} 
 )
-#target_link_libraries(centralized_rendezvous
-#  ${catkin_LIBRARIES}
-#)
+target_link_libraries(centralized_rendezvous
+  ${catkin_LIBRARIES}
+)

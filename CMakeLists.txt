@@ -54,6 +54,12 @@ add_executable(UGVoffboard_node
 add_executable(centralized_rendezvous
   src/Centralized_Rendezvous.cpp
 )
+add_executable(distributed_UAVoffboard_node
+  src/distributed_UAVoffboard_node.cpp
+)
+add_executable(distributed_UGVoffboard_node
+  src/distributed_UGVoffboard_node.cpp
+)
 
 add_library(MPC SHARED IMPORTED)
 set_target_properties(MPC PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/src/SharedLibs/MPC.so)
@@ -74,15 +80,25 @@ target_link_libraries(simulator_node
   ${catkin_LIBRARIES} 
 )
 target_link_libraries(UAVoffboard_node
-   MPC
-   ${CMAKE_DL_LIBS}
-   ${catkin_LIBRARIES} 
+  MPC
+  ${CMAKE_DL_LIBS}
+  ${catkin_LIBRARIES} 
 )
 target_link_libraries(UGVoffboard_node
-   MPC_UGV
-   ${CMAKE_DL_LIBS}
-   ${catkin_LIBRARIES} 
+  MPC_UGV
+  ${CMAKE_DL_LIBS}
+  ${catkin_LIBRARIES} 
 )
 target_link_libraries(centralized_rendezvous
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(distributed_UAVoffboard_node
+  MPC
+  ${CMAKE_DL_LIBS}
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(distributed_UGVoffboard_node
+  MPC_UGV
+  ${CMAKE_DL_LIBS}
   ${catkin_LIBRARIES}
 )

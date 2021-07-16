@@ -64,12 +64,6 @@ int main(int argc, char **argv)
     // setpoint publishing rate
     ros::Rate rate(40.0);
 
-    // wait for UAV to switch to offboard mode
-    while(current_UAVstate.mode != "OFFBOARD"){
-        ros::spinOnce();
-        rate.sleep();
-    }
-
     // Initialize things for the MPC algorithm
     std::string const package_path = ros::package::getPath("Rendezvous");
     std::string const library_path = package_path + "/src/SharedLibs/MPC_UGV.so";
@@ -170,13 +164,19 @@ int main(int argc, char **argv)
     geometry_msgs::Twist setpoint;
     setpoint.linear.x = ControlAction[0];
     setpoint.linear.y = ControlAction[1];
-    geometry_msgs::Point point;
-    Rendezvous::Trajectory predicted_trajectory;
+    geometry_msgs::Point    point;
+    Rendezvous::Trajectory  predicted_trajectory;
     point.z = 0;    // TODO: update with the height of the platform
     for(int i=0; i<N+1; ++i){
         point.x = PredictedX[i];
         point.y = PredictedY[i];
         predicted_trajectory.data.push_back(point);
+    }
+
+    // wait for UAV to switch to offboard mode
+    while(current_UAVstate.mode != "OFFBOARD"){
+        ros::spinOnce();
+        rate.sleep();
     }
 
     /* Free memory (thread-safe) */

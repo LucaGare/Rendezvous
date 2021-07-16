@@ -77,7 +77,7 @@ int main(int argc, char **argv)
             rendezvous_point.y = (initial_UAVpose.pose.position.y + initial_UGVpose.pose.position.y)/2;
 
             if (current_state.mode == "OFFBOARD"){
-                if(j<5){
+                if(j<10){
                     ros::spinOnce();
                     rate.sleep();
 
@@ -87,7 +87,10 @@ int main(int argc, char **argv)
                     std::cout<< "Initialized! " << std::endl;
                 }
             }
-        }else{
+
+            rendezvous_point_pub.publish(rendezvous_point);
+
+        } else {
             UAV_arrived = false;
             UGV_arrived = false;
             UAV_arrival_time = 2*N;
@@ -130,9 +133,12 @@ int main(int argc, char **argv)
             }
             // CASE 4: both UAV and UGV reached setpoint, the second reached the setpoint within 2 control steps (0.4s) 
             // after the first: the rendezvous point does not need to be updated.
-        }
 
-        rendezvous_point_pub.publish(rendezvous_point);
+            if (UAV_predicted.data[0].z > 0.1){
+                rendezvous_point_pub.publish(rendezvous_point);
+            }
+
+        }
 
         ros::spinOnce();
         rate.sleep();

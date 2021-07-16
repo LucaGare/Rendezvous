@@ -5,16 +5,16 @@
     <arg name="uav_id" default="px4_quad"/>
     <arg name="ugv_id" default="nexus5"/>
     <arg name="run_simulation" default="false"/>
-
-    <node name="UAV_controller" pkg="Rendezvous" type="UAVoffboard_node"/>
+	
+    <node name="Coordinator" pkg="Rendezvous" type="centralized_rendezvous"/>
     <node name="UGV_controller" pkg="Rendezvous" type="UGVoffboard_node">
         <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
         <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
         <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
 	<remap from="/nexus1/trajectory" to="/$(arg ugv_id)/trajectory"/>
     </node>
-    <node name="Coordinator" pkg="Rendezvous" type="centralized_rendezvous"/>
-
+    <node name="UAV_controller" pkg="Rendezvous" type="UAVoffboard_node"/>
+ 
     <group unless="$(arg run_simulation)">
         <!-- TODO -->
         <node name="record" pkg="rosbag" type="record" args="-j -O rendezvous.bag -a"/>

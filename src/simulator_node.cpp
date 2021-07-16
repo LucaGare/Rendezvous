@@ -67,8 +67,8 @@ int main(int argc, char **argv){
     ros::Rate rate(100.0);
 
     // Set initial state vectors x0
-    std::vector<double> x0_UAV = {1, -1.3, 1, 0, 0, 0, .1, .1, .3};
-    std::vector<double> x0_UGV = {-1., 0.9, 0., 0.};
+    std::vector<double> x0_UAV = {0.8, -0.8, 1, 0, 0, 0, .1, .1, .3};
+    std::vector<double> x0_UGV = {-1, 0.9, 0., 0.};
     eulerAngles current_ea;
     current_ea.roll  = x0_UAV[6];
     current_ea.pitch = x0_UAV[7];
@@ -222,9 +222,11 @@ int main(int argc, char **argv){
     double UAVw[UAVsz_w];
 
     bool firstTime = true;
+    bool landed = false;
+    std::vector<double> x0_landed;
     ros::Time beginning;
 
-    while(ros::ok() && current_UAVstate.armed){
+    while(ros::ok() && current_UAVstate.armed && !(landed)){
         if(current_UAVsetpoint.type_mask != 7){
             current_UAVstate.header.stamp    = ros::Time::now();
             current_UAVpose.header.stamp     = ros::Time::now();
@@ -318,10 +320,6 @@ int main(int argc, char **argv){
             x0_UAV[7] = UAVxf[7]; // + dist(generator)/2;
             x0_UAV[8] = UAVxf[8]; // + dist(generator)/2;
 
-            if(x0_UAV[2] < 0){
-                x0_UAV[2] = 0;
-            }
-
             // Fill the messages to publish
             current_UAVpose.pose.position.x  = x0_UAV[0];
             current_UAVpose.pose.position.y  = x0_UAV[1];
@@ -345,6 +343,14 @@ int main(int argc, char **argv){
 
             current_UGVpose.header.stamp     = ros::Time::now();
             current_UGVvelocity.header.stamp = ros::Time::now();
+
+            if(x0_UAV[2] < 0.01){
+                landed = true;
+                current_UAVpose.pose.position.z  = 0;
+                current_UAVvelocity.twist.linear.x = 0;
+                current_UAVvelocity.twist.linear.y = 0;
+                current_UAVvelocity.twist.linear.z = 0;
+            }
 
             // Publish the messages
             UAVstate_pub.publish(current_UAVstate);

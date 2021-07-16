@@ -177,12 +177,7 @@ int main(int argc, char **argv)
         point.x = PredictedX[i];
         point.y = PredictedY[i];
         predicted_trajectory.data.push_back(point);
-        std::cout<< "UGVoffboard_node reached line 182 for i = " << i << std::endl;
-        std::cout<< "At i = " << i << ": x = " << *(PredictedX + i) << ", y = " << *(PredictedY + i) << std::endl;
     }
-
-    std::cout<< "UGVoffboard_node reached line 186! " << std::endl;
-    std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
 
     /* Free memory (thread-safe) */
     decref(); 
@@ -201,9 +196,6 @@ int main(int argc, char **argv)
         // Allocate memory (thread-safe)
         incref();
 
-        std::cout<< "UGVoffboard_node reached line 206! " << std::endl;
-        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
-
         /* Evaluate the function */
         arg[0] = x0;
         arg[1] = DesiredFinalPosition;
@@ -211,12 +203,9 @@ int main(int argc, char **argv)
         res[1] = PredictedX;
         res[2] = PredictedY;
 
-        std::cout<< "UGVoffboard_node reached line 216! " << std::endl;
-        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
-
         // Checkout thread-local memory (not thread-safe)
         // Note MAX_NUM_THREADS
-        int mem = checkout();
+        mem = checkout();
 
         // Evaluation is thread-safe
         if (eval(arg, res, iw, w, mem)) return 1;
@@ -224,17 +213,12 @@ int main(int argc, char **argv)
         // Release thread-local (not thread-safe)
         release(mem);
 
-        std::cout<< "UGVoffboard_node reached line 229! " << std::endl;
-        std::cout<< "PredictedX[0] = " << *(PredictedX) << std::endl;
-
         setpoint.linear.x = ControlAction[0];
         setpoint.linear.y = ControlAction[1];
         for(int i=0; i<N+1; ++i){
             point.x = PredictedX[i];
             point.y = PredictedY[i];
             predicted_trajectory.data[i] = point;
-            std::cout<< "UGVoffboard_node reached line 239 for i = " << i << std::endl;
-            std::cout<< "At i = " << i << ": x = " << *(PredictedX + i) << ", y = " << *(PredictedY + i) << std::endl;
         }
 
         /* Free memory (thread-safe) */

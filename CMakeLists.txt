@@ -10,6 +10,7 @@ project(Rendezvous)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
+  std_msgs
   nav_msgs
   geometry_msgs
   mavros_msgs

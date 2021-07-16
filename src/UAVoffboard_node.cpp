@@ -258,7 +258,7 @@ int main(int argc, char **argv)
 
         // Checkout thread-local memory (not thread-safe)
         // Note MAX_NUM_THREADS
-        int mem = checkout();
+        mem = checkout();
 
         // Evaluation is thread-safe
         if (eval(arg, res, iw, w, mem)) return 1;
@@ -277,7 +277,7 @@ int main(int argc, char **argv)
             point.x = PredictedX[i];
             point.y = PredictedY[i];
             point.z = PredictedZ[i];
-            predicted_trajectory.data[i] = point;
+            predicted_trajectory.data.push_back(point);
         }
 
         /* Free memory (thread-safe) */
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
         
         // If stopping condition is satisfied command no thrust
         if(stop){
-            setpoint.thrust = 0.1;
+            setpoint.thrust = 0;
         }
         
         sequenceNumber++;

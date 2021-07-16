@@ -230,6 +230,7 @@ int main(int argc, char **argv)
             }
 
             rendezvous_update_pub.publish(initial_rendezvous);
+            predicted_trajectory_pub.publish(predicted_trajectory);
 
         } else if (initialized && count < 2){
             // Build the current state vector
@@ -250,7 +251,7 @@ int main(int argc, char **argv)
 
             // Checkout thread-local memory (not thread-safe)
             // Note MAX_NUM_THREADS
-            int mem = checkout();
+            mem = checkout();
 
             // Evaluation is thread-safe
             if (eval(arg, res, iw, w, mem)) return 1;
@@ -293,7 +294,7 @@ int main(int argc, char **argv)
 
             // Checkout thread-local memory (not thread-safe)
             // Note MAX_NUM_THREADS
-            int mem = checkout();
+            mem = checkout();
 
             // Evaluation is thread-safe
             if (eval(arg, res, iw, w, mem)) return 1;

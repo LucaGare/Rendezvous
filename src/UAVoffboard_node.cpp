@@ -227,7 +227,7 @@ int main(int argc, char **argv)
     bool stop = false;
 
     while(ros::ok() && current_state.armed){
-        if( current_state.mode != "OFFBOARD" && sequenceNumber > 20 && !stop &&
+        if( current_state.mode != "OFFBOARD" && sequenceNumber > 10 && !stop &&
             (ros::Time::now() - last_request > ros::Duration(5.0))){
             if( set_mode_client.call(offb_set_mode) &&
                 offb_set_mode.response.mode_sent){

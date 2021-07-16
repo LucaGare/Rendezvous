@@ -12,12 +12,12 @@ Runs an MPC algorithm, sending attitude setpoint to the FCU.
 #include <string>
 #include <dlfcn.h>
 
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/Point.h>
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <mavros_msgs/AttitudeTarget.h>
+#include <geometry_msgs/Point.h>
 #include <Rendezvous/Trajectory.h>
 
 struct eulerAngles {
@@ -237,6 +237,7 @@ int main(int argc, char **argv)
     bool    UAV_arrived, update;
     int     UAV_arrival_time;
     geometry_msgs::Point    updated_rendezvous_point;
+    int     count = 0;
 
     while(ros::ok() && current_state.armed){
         if( current_state.mode != "OFFBOARD" && sequenceNumber > 10 && !stop &&
@@ -270,7 +271,7 @@ int main(int argc, char **argv)
 
         // Checkout thread-local memory (not thread-safe)
         // Note MAX_NUM_THREADS
-        int mem = checkout();
+        mem = checkout();
 
         // Evaluation is thread-safe
         if (eval(arg, res, iw, w, mem)) return 1;
@@ -292,7 +293,6 @@ int main(int argc, char **argv)
             predicted_trajectory.data.push_back(point);
         }
 
-/*
         // Check when UAV predicts to reach the rendezvous point
         UAV_arrived = false;
         update = false;
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
         }
 
         // Rendezvous point update
-        if( UAV_arrived ){
+        if( UAV_arrived && count > 3){
             if(UAV_arrival_time < 19){
                 // Check if UGV is already arrived at (UAV_arrival_time + 2), i.e. if the UGV reaches the rendezvous point
                 // at most 2 control instants (0.4s) after the UAV. If not, update the rendezvous point
@@ -330,7 +330,9 @@ int main(int argc, char **argv)
                 }
             }
         }
-*/
+        if (count < 5){
+            count++;
+        }
 
         // LANDING //
         // Stopping condition
@@ -352,10 +354,9 @@ int main(int argc, char **argv)
         setpoint.header.seq = sequenceNumber;
         setpoint_pub.publish(setpoint);
         predicted_trajectory_pub.publish(predicted_trajectory);
-/*        if( update ){
+        if( update ){
             rendezvous_update_pub.publish(updated_rendezvous_point);
         }
-*/
 
         /* Free memory (thread-safe) */
         decref();

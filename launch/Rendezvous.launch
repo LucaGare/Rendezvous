@@ -6,7 +6,7 @@
     <arg name="ugv_id" default="nexus5"/>
     <arg name="run_simulation" default="false"/>
 
-    <node name="UAV_controller" pkg="Rendezvous" type="UAVoffboard_node"/>
+    <node name="UAV_controller" pkg="Rendezvous" type="distributed_UAVoffboard_node"/>
     <node name="UGV_controller" pkg="Rendezvous" type="distributed_UGVoffboard_node">
         <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
         <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>

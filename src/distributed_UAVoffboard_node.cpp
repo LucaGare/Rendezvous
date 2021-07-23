@@ -65,9 +65,9 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
-            ("/px4_quad/mavros/state", 10, state_cb);
+            ("px4_quad/mavros/state", 10, state_cb);
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
-            ("/px4_quad/mavros/set_mode");
+            ("px4_quad/mavros/set_mode");
     ros::Subscriber pose = nh.subscribe<geometry_msgs::PoseStamped>
             ("/qualisys/px4_quad/pose", 100, pose_cb);
     ros::Subscriber UGVpose = nh.subscribe<geometry_msgs::PoseStamped>
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     ros::Subscriber UGVtrajectory = nh.subscribe<Rendezvous::Trajectory>
             ("/nexus5/trajectory", 100, UGVtrajectory_cb);
     ros::Publisher setpoint_pub = nh.advertise<mavros_msgs::AttitudeTarget>
-            ("/px4_quad/mavros/setpoint_raw/attitude", 100);
+            ("px4_quad/mavros/setpoint_raw/attitude", 100);
     ros::Publisher predicted_trajectory_pub = nh.advertise<Rendezvous::Trajectory>
             ("/px4_quad/trajectory", 100);
     ros::Publisher rendezvous_update_pub = nh.advertise<geometry_msgs::Point>
@@ -307,7 +307,7 @@ int main(int argc, char **argv)
         }
 
         // Rendezvous point update
-        if( UAV_arrived && count > 3){
+        if( current_state.mode == "OFFBOARD" && UAV_arrived && count > 3){
             if(UAV_arrival_time < 19){
                 // Check if UGV is already arrived at (UAV_arrival_time + 2), i.e. if the UGV reaches the rendezvous point
                 // at most 2 control instants (0.4s) after the UAV. If not, update the rendezvous point
@@ -334,9 +334,20 @@ int main(int argc, char **argv)
             count++;
         }
 
+        // SAFETY MEASURE (to be commented out when running simulation)
+        // Switch to position mode if the altitude becomes dangerously low
+        if( current_pose.pose.position.z < 0.35){
+            offb_set_mode.request.custom_mode = "POSCTL";
+            if( set_mode_client.call(offb_set_mode) &&
+                offb_set_mode.response.mode_sent){
+                ROS_INFO("Dangerous altitude: Position control enabled");
+            }
+        }
+
         // LANDING //
         // Stopping condition
-        if( !stop && abs(current_pose.pose.position.z - DesiredFinalPosition[2]) < 0.1 ){
+        if( !stop && abs(current_pose.pose.position.z - UGVcurrent_pose.pose.position.z) < 0.2 && 
+            abs(current_velocity.twist.linear.x) < 0.1 && abs(current_velocity.twist.linear.y) < 0.1){
 //            if(abs(current_pose-pose.position.x - DesiredFinalPosition[0]) < 0.05 && abs(current_pose.pose.position.y - DesiredFinalPosition[1]) < 0.05){
             if(abs(current_pose.pose.position.x - UGVcurrent_pose.pose.position.x) < 0.05 && abs(current_pose.pose.position.y - UGVcurrent_pose.pose.position.y) < 0.05){
                 stop = true;
@@ -356,6 +367,7 @@ int main(int argc, char **argv)
         predicted_trajectory_pub.publish(predicted_trajectory);
         if( update ){
             rendezvous_update_pub.publish(updated_rendezvous_point);
+             std::cout<< "UAV updated the rendezvous point." << std::endl;
         }
 
         /* Free memory (thread-safe) */
@@ -431,8 +443,10 @@ geometry_msgs::Quaternion quat_from_euler(eulerAngles ea){
 double thrust_from_verticalVelocityCommand(double vz_dot_cmd, state_vector x){
     double T;
     double g = 9.81; // acceleration of gravity [m/s^2]
-    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
-    //double hoovering_T = 0.332; // hoovering nondimensional thrust [-]
+//    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
+    double hoovering_T = 0.35; // hoovering nondimensional thrust [-]  --> It worked with low battery!
+//    double hoovering_T = 0.34; // hoovering nondimensional thrust [-]  --> It worked with battery almost full!
+//    double hoovering_T = 0.348; // hoovering nondimensional thrust [-] --> Used to introduce model mismatch in the simulation (paired with 0.363 in the simulator)
     double TMax  = g/hoovering_T;   // maximum "thrust" (acceleration at maximum thrust) [m/s^2]
     double cr = cos(x.orientation.roll);
     double cp = cos(x.orientation.pitch);

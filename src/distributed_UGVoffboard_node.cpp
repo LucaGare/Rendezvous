@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
 
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
-            ("/px4_quad/mavros/state", 10, state_cb);
+            ("px4_quad/mavros/state", 10, state_cb);
     ros::Subscriber UGVpose = nh.subscribe<geometry_msgs::PoseStamped>
             ("/qualisys/nexus1/pose", 100, UGVpose_cb);
     ros::Subscriber UGVvelocity = nh.subscribe<geometry_msgs::TwistStamped>
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     ros::Subscriber UAVtrajectory = nh.subscribe<Rendezvous::Trajectory>
             ("/px4_quad/trajectory", 100, UAVtrajectory_cb);
     ros::Publisher UGVsetpoint_pub = nh.advertise<geometry_msgs::Twist>
-            ("/nexus1/cmd_vel", 100);
+            ("nexus1/cmd_vel", 100);
     ros::Publisher predicted_trajectory_pub = nh.advertise<Rendezvous::Trajectory>
             ("/nexus1/trajectory", 100);
     ros::Publisher rendezvous_update_pub = nh.advertise<geometry_msgs::Point>
@@ -77,18 +77,18 @@ int main(int argc, char **argv)
     // setpoint publishing rate
     ros::Rate rate(40.0);
 
-    int count0 = 0;        // NOTE: this loop is to be sure to have messages from qualisys before proceding,
-    while(count0 < 3){     // it can be erased when using this code outside of the simulation
+    /*int count0 = 0;        // NOTE: this loop is to be sure to have messages from qualisys before proceding,
+    while(count0 < 5){     // it can be erased when using this code outside of the simulation
         count0++;
         ros::spinOnce();
         rate.sleep();
-    }
+    }*/
 
     // Initialize rendezvous point
     geometry_msgs::Point initial_rendezvous;
     initial_rendezvous.x = (current_pose.pose.position.x + UAVcurrent_pose.pose.position.x)/2;
     initial_rendezvous.y = (current_pose.pose.position.y + UAVcurrent_pose.pose.position.y)/2;
-    initial_rendezvous.z = 0.2; // z position of the platform (constant) --> to be updated with the height of the platform
+    initial_rendezvous.z = 0.85; // "landed" altitude: 571mm --> setpoint slightly higher
 
     // Initialize things for the MPC algorithm
     std::string const package_path = ros::package::getPath("Rendezvous");
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     setpoint.linear.y = ControlAction[1];
     geometry_msgs::Point    point;
     Rendezvous::Trajectory  predicted_trajectory;
-    point.z = 0;    // to be updated with the height of the platform
+    point.z = 0.578;
     for(int i=0; i<N+1; ++i){
         point.x = PredictedX[i];
         point.y = PredictedY[i];
@@ -218,21 +218,27 @@ int main(int argc, char **argv)
             initial_rendezvous.y = (UAVcurrent_pose.pose.position.y + current_pose.pose.position.y)/2;
 
             if (current_UAVstate.mode == "OFFBOARD"){
-                if(j<10){               // NOTE: when tested outside of the simulation just set initialized = true
-                    ros::spinOnce();    // when current_UAVstate.mode == "OFFBOARD"
+                /*// TO BE USED IN SIL TESTS (since the UAV is in offboard mode since the beginning)
+                if(j<10){               
+                    ros::spinOnce();    
                     rate.sleep();
 
                     j++;
                 }else{
                     initialized = true;
                     std::cout<< "Initialized! " << std::endl;
-                }
+                }*/
+
+                // TO BE USED IN HIL TESTS
+                initialized = true;
+                std::cout<< "Initialized! " << std::endl;
             }
 
             rendezvous_update_pub.publish(initial_rendezvous);
             predicted_trajectory_pub.publish(predicted_trajectory);
 
         } else if (initialized && count < 2){
+            count++;
             // Build the current state vector
             current_state_vector = stateVector_from_subs(current_pose, current_velocity);
             const double x0[] = {current_state_vector.x, current_state_vector.y,
@@ -271,6 +277,7 @@ int main(int argc, char **argv)
             // Publish the messages
             UGVsetpoint_pub.publish(setpoint);
             predicted_trajectory_pub.publish(predicted_trajectory);
+            std::cout<< "Initialized but still initial setpoint published." << std::endl;
 
             /* Free memory (thread-safe) */
             decref();
@@ -345,6 +352,16 @@ int main(int argc, char **argv)
                         updated_rendezvous_point.z = current_rendezvous.z;
                     }
                 }
+                if(current_rendezvous.z == 0.85 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.1 && 
+                    abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.1){
+                        update = true;
+                        updated_rendezvous_point.z = 0.7;
+                    }
+                if(current_rendezvous.z == 0.7 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.05 && 
+                    abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.05){
+                        update = true;
+                        updated_rendezvous_point.z = 0.5;
+                    }
             }
 
             // Publish the messages
@@ -352,6 +369,7 @@ int main(int argc, char **argv)
             predicted_trajectory_pub.publish(predicted_trajectory);
             if( update ){
                 rendezvous_update_pub.publish(updated_rendezvous_point);
+                 std::cout<< "UGV updated the rendezvous point." << std::endl;
             }
 
             /* Free memory (thread-safe) */

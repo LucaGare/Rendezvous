@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 
         // LANDING //
         // Stopping condition
-        if( !stop && abs(current_pose.pose.position.z - DesiredFinalPosition[2]) < 0.1 ){
+        if( !stop && abs(current_pose.pose.position.z - UGVcurrent_pose.pose.position.z) < 0.2 ){
 //            if(abs(current_pose-pose.position.x - DesiredFinalPosition[0]) < 0.05 && abs(current_pose.pose.position.y - DesiredFinalPosition[1]) < 0.05){
             if(abs(current_pose.pose.position.x - UGVcurrent_pose.pose.position.x) < 0.05 && abs(current_pose.pose.position.y - UGVcurrent_pose.pose.position.y) < 0.05){
                 stop = true;
@@ -294,7 +294,7 @@ int main(int argc, char **argv)
         
         // If stopping condition is satisfied command no thrust
         if(stop){
-            setpoint.thrust = 0;
+            setpoint.thrust = 0.1;
         }
         
         sequenceNumber++;

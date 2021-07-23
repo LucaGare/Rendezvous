@@ -67,8 +67,8 @@ int main(int argc, char **argv){
     ros::Rate rate(100.0);
 
     // Set initial state vectors x0
-    std::vector<double> x0_UAV = {0.8, -0.8, 1, 0, 0, 0, .1, .1, .3};
-    std::vector<double> x0_UGV = {-1, 0.9, 0., 0.};
+    std::vector<double> x0_UAV = {0.7, -0.7, 1.3, 0, 0, 0, -.1, -.1, .3};
+    std::vector<double> x0_UGV = {-0.45, 0., 0., 0.};
     eulerAngles current_ea;
     current_ea.roll  = x0_UAV[6];
     current_ea.pitch = x0_UAV[7];
@@ -76,7 +76,7 @@ int main(int argc, char **argv){
 
     // Define random generator with Gaussian distribution
     const double mean = 0.0;
-    const double stddev = 0.01;
+    const double stddev = 0.03;
     std::default_random_engine generator;
     std::normal_distribution<double> dist(mean, stddev);
 
@@ -86,7 +86,7 @@ int main(int argc, char **argv){
     current_UGVpose.header.frame_id  = "map";
     current_UGVpose.pose.position.x  = x0_UGV[0];
     current_UGVpose.pose.position.y  = x0_UGV[1];
-    current_UGVpose.pose.position.z  = 0.;         // (TODO: update with the height of the platform)
+    current_UGVpose.pose.position.z  = 0.51;
     current_UGVpose.pose.orientation.w = 1;
     geometry_msgs::TwistStamped current_UGVvelocity;   
     current_UGVvelocity.header.frame_id = "map";
@@ -98,7 +98,7 @@ int main(int argc, char **argv){
     initial_UGVpose.header.stamp     = ros::Time::now();
     initial_UGVpose.pose.position.x  = x0_UGV[0];
     initial_UGVpose.pose.position.y  = x0_UGV[1];
-    initial_UGVpose.pose.position.z  = 0.;         // (TODO: update with the height of the platform)
+    initial_UGVpose.pose.position.z  = 0.51;
     initial_UGVpose.pose.orientation.w = 1;
 
     /* UAV state, pose, velocity and initial pose */
@@ -304,7 +304,7 @@ int main(int argc, char **argv){
             UGVrelease(UGVmem);
 
             // New initial value for integrators with added Gaussian noise
-            // mean = 0; std dev = 0.01 (0.005 for angles).
+            // mean = 0; std dev = 0.03 (0.015 for angles).
             x0_UGV[0] = UGVxf[0]; // + dist(generator);
             x0_UGV[1] = UGVxf[1]; // + dist(generator);
             x0_UGV[2] = UGVxf[2]; // + dist(generator);
@@ -343,6 +343,15 @@ int main(int argc, char **argv){
 
             current_UGVpose.header.stamp     = ros::Time::now();
             current_UGVvelocity.header.stamp = ros::Time::now();
+
+            if(abs(x0_UGV[0] - x0_UAV[0]) < 0.05 && abs(x0_UGV[1] - x0_UAV[1]) < 0.05 &&
+                 (x0_UAV[2]-current_UGVpose.pose.position.z) < 0.01){
+                landed = true;
+                current_UAVpose.pose.position.z  = current_UGVpose.pose.position.z;
+                current_UAVvelocity.twist.linear.x = 0;
+                current_UAVvelocity.twist.linear.y = 0;
+                current_UAVvelocity.twist.linear.z = 0;
+            }
 
             if(x0_UAV[2] < 0.01){
                 landed = true;
@@ -436,8 +445,9 @@ double verticalAcceleration_from_thrust(double T, std::vector<double> x){
     double az_cmd;
 
     double g = 9.81; // acceleration of gravity [m/s^2]
-    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
-    //double hoovering_T = 0.332; // hoovering nondimensional thrust [-]
+//    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
+//    double hoovering_T = 0.332; // hoovering nondimensional thrust [-]
+    double hoovering_T = 0.35; // hoovering nondimensional thrust [-]
     double TMax  = g/hoovering_T;   // maximum "thrust" (acceleration at maximum thrust) [m/s^2]
 
     az_cmd = T*TMax*cos(x[6])*cos(x[7]) - g;

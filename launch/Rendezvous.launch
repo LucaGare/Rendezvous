@@ -10,14 +10,13 @@
     <node name="UGV_controller" pkg="Rendezvous" type="distributed_UGVoffboard_node">
         <remap from="/qualisys/nexus1/pose" to="/qualisys/$(arg ugv_id)/pose"/>
         <remap from="/qualisys/nexus1/velocity" to="/qualisys/$(arg ugv_id)/velocity"/>
-        <remap from="/nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
+        <remap from="nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
 	<remap from="/nexus1/trajectory" to="/$(arg ugv_id)/trajectory"/>
     </node>
 
-    <group unless="$(arg run_simulation)">
-        <!-- TODO -->
+    <!--group unless="$(arg run_simulation)">
         <node name="record" pkg="rosbag" type="record" args="-j -O rendezvous.bag -a"/>
-    </group>
+    </group-->
 
     <!-- Run simulation if argument is set-->
     <group ns="simulation" if="$(arg run_simulation)">

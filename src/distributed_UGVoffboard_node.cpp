@@ -352,16 +352,16 @@ int main(int argc, char **argv)
                         updated_rendezvous_point.z = current_rendezvous.z;
                     }
                 }
-                if(current_rendezvous.z == 0.85 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.1 && 
-                    abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.1){
-                        update = true;
-                        updated_rendezvous_point.z = 0.7;
-                    }
-                if(current_rendezvous.z == 0.7 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.05 && 
-                    abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.05){
-                        update = true;
-                        updated_rendezvous_point.z = 0.5;
-                    }
+            }
+            if(current_rendezvous.z == 0.85 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.1 && 
+            abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.1){
+                update = true;
+                updated_rendezvous_point.z = 0.7;
+            }
+            if(current_rendezvous.z == 0.7 && abs(UAVcurrent_pose.pose.position.x - current_pose.pose.position.x) < 0.05 && 
+            abs(UAVcurrent_pose.pose.position.y - current_pose.pose.position.y) < 0.05){
+                update = true;
+                updated_rendezvous_point.z = 0.5;
             }
 
             // Publish the messages

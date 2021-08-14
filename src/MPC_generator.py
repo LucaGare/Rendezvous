@@ -1,4 +1,5 @@
 from casadi import *
+import numpy as np
 
 T = 4.                                  # Time horizon
 N = 20                                  # Number of control intervals (sampling period = T/N)

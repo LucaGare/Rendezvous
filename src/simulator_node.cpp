@@ -76,7 +76,7 @@ int main(int argc, char **argv){
 
     // Define random generator with Gaussian distribution
     const double mean = 0.0;
-    const double stddev = 0.03;
+    const double stddev = 0.04;
     std::default_random_engine generator;
     std::normal_distribution<double> dist(mean, stddev);
 
@@ -304,7 +304,7 @@ int main(int argc, char **argv){
             UGVrelease(UGVmem);
 
             // New initial value for integrators with added Gaussian noise
-            // mean = 0; std dev = 0.03 (0.015 for angles).
+            // mean = 0; std dev = 0.04 (0.02 for angles).
             x0_UGV[0] = UGVxf[0]; // + dist(generator);
             x0_UGV[1] = UGVxf[1]; // + dist(generator);
             x0_UGV[2] = UGVxf[2]; // + dist(generator);

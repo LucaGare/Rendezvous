@@ -2,7 +2,6 @@
 
 <launch>
 
-    <arg name="uav_id" default="px4_quad"/>
     <arg name="ugv_id" default="nexus5"/>
     <arg name="run_simulation" default="false"/>
 
@@ -13,10 +12,6 @@
         <remap from="nexus1/cmd_vel" to="/$(arg ugv_id)/cmd_vel"/>
 	<remap from="/nexus1/trajectory" to="/$(arg ugv_id)/trajectory"/>
     </node>
-
-    <!--group unless="$(arg run_simulation)">
-        <node name="record" pkg="rosbag" type="record" args="-j -O rendezvous.bag -a"/>
-    </group-->
 
     <!-- Run simulation if argument is set-->
     <group ns="simulation" if="$(arg run_simulation)">

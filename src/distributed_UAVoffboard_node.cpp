@@ -166,10 +166,10 @@ int main(int argc, char **argv)
     int N = 20; // Control horizon
     state_vector current_state_vector = stateVector_from_subs(current_pose, current_velocity);
     const double x0[] = {current_state_vector.position.x, current_state_vector.position.y,
-                                current_state_vector.position.z, current_state_vector.linearVelocity.x, 
-                                current_state_vector.linearVelocity.y, current_state_vector.linearVelocity.z,
-                                current_state_vector.orientation.roll, current_state_vector.orientation.pitch, 
-                                current_state_vector.orientation.yaw};
+                        current_state_vector.position.z, current_state_vector.linearVelocity.x, 
+                        current_state_vector.linearVelocity.y, current_state_vector.linearVelocity.z,
+                        current_state_vector.orientation.roll, current_state_vector.orientation.pitch, 
+                        current_state_vector.orientation.yaw};
     const double DesiredFinalPosition[] = {current_rendezvous.x, current_rendezvous.y, current_rendezvous.z};
     double ControlAction[4];
     double PredictedX[N+1];
@@ -295,7 +295,7 @@ int main(int argc, char **argv)
 
         // Check when UAV predicts to reach the rendezvous point
         UAV_arrived = false;
-        update = false;
+        update      = false;
         UAV_arrival_time = 2*N;
         for (int i=0; i<N+1 && !UAV_arrived; ++i){
             if((predicted_trajectory.data[i].z - current_rendezvous.z) < 0.3){
@@ -348,13 +348,12 @@ int main(int argc, char **argv)
         // Stopping condition
         if( !stop && abs(current_pose.pose.position.z - UGVcurrent_pose.pose.position.z) < 0.2 && 
             abs(current_velocity.twist.linear.x) < 0.1 && abs(current_velocity.twist.linear.y) < 0.1){
-//            if(abs(current_pose-pose.position.x - DesiredFinalPosition[0]) < 0.05 && abs(current_pose.pose.position.y - DesiredFinalPosition[1]) < 0.05){
             if(abs(current_pose.pose.position.x - UGVcurrent_pose.pose.position.x) < 0.05 && abs(current_pose.pose.position.y - UGVcurrent_pose.pose.position.y) < 0.05){
                 stop = true;
             }
         }
         
-        // If stopping condition is satisfied command no thrust
+        // If stopping condition is satisfied command UAV's thrust cut
         if(stop){
             setpoint.thrust = 0.1;
         }
@@ -443,10 +442,7 @@ geometry_msgs::Quaternion quat_from_euler(eulerAngles ea){
 double thrust_from_verticalVelocityCommand(double vz_dot_cmd, state_vector x){
     double T;
     double g = 9.81; // acceleration of gravity [m/s^2]
-//    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
-    double hoovering_T = 0.35; // hoovering nondimensional thrust [-]  --> It worked with low battery!
-//    double hoovering_T = 0.34; // hoovering nondimensional thrust [-]  --> It worked with battery almost full!
-//    double hoovering_T = 0.348; // hoovering nondimensional thrust [-] --> Used to introduce model mismatch in the simulation (paired with 0.363 in the simulator)
+    double hoovering_T = 0.35; // hovering nondimensional thrust [-]
     double TMax  = g/hoovering_T;   // maximum "thrust" (acceleration at maximum thrust) [m/s^2]
     double cr = cos(x.orientation.roll);
     double cp = cos(x.orientation.pitch);

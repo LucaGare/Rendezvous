@@ -8,8 +8,8 @@ kvx = .94                               # Velocity dynamics
 tauvx = .08
 kvy = .88                                   
 tauvy = .08
-Q = diag([1, 1])                        # State penalty (speed)
 Qe = diag([30, 30])                     # State penalty (relative position between UGV and rendezvous point)
+Q = diag([1, 1])                        # State penalty (velocity)
 R = diag([1, 1])                        # Control penalty
 P = diag([9.6, 9.9, 0.1, 0.1])          # Final state penalty
 P[0,2] = 0.5
@@ -77,7 +77,7 @@ x_end, c = F(x[:,N-1],u[:,N-1],T/N,s)
 XN = vertcat(x_end[0], x_end[1]) - s
 XN = vertcat(XN, x_end[2], x_end[3])
 opti.subject_to(x[:,N] == x_end)
-cost = cost + transpose(XN) @ P @ XN
+cost = cost + transpose(XN) @ P @ XN    # Add final state cost
 opti.minimize(cost)                     # Optimization objective
 
 px = x[0,:]                             # x position
@@ -89,10 +89,10 @@ vy_cmd = u[1,:]                         # Commanded y velocity
 
 opti.subject_to(opti.bounded(-1.1,px,1.1))      # Enforce constraint on x position
 opti.subject_to(opti.bounded(-1.5,py,1))        # Enforce constraint on y position
-opti.subject_to(opti.bounded(-0.3,vx,0.3))      # Enforce constraint on x velocity   (TODO: Better check max x and y velocity)   
+opti.subject_to(opti.bounded(-0.3,vx,0.3))      # Enforce constraint on x velocity  
 opti.subject_to(opti.bounded(-0.2,vy,0.2))      # Enforce constraint on y velocity
 
-opti.subject_to(opti.bounded(-0.3,vx_cmd,0.3))  # Enforce constraint on commanded x velocity (TODO: Update according to max vx and vy)
+opti.subject_to(opti.bounded(-0.3,vx_cmd,0.3))  # Enforce constraint on commanded x velocity
 opti.subject_to(opti.bounded(-0.2,vy_cmd,0.2))  # Enforce constraint on commanded y velocity
 
 opts = {'qpsol': 'qrqp'}                # Setting the solver    

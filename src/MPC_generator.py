@@ -11,10 +11,10 @@ kYaw = 1.
 tauRoll = .15                           # Attitude dynamics time constants
 tauPitch = .11
 tauYaw = .32
-Q = diag([6, 6, 6, 5, 5, 1])
 Qe = diag([30, 30, 6])                  # State penalty (relative position between drone and rendezvous point)
+Q = diag([6, 6, 6, 5, 5, 1])            # State penalty (velocity and attitude)
 R = diag([1, 1, 1, 1])                  # Control penalty
-P = diag([17.4, 17.7, 8.1, 1.1, 1.2, 3.3, 0.4, 0.3, 0.1])
+P = diag([17.4, 17.7, 8.1, 1.1, 1.2, 3.3, 0.4, 0.3, 0.1])   # Final state penalty
 P[0,3] = 2.0
 P[3,0] = 2.0
 P[0,7] = .6
@@ -52,8 +52,8 @@ x_velAtt = vertcat(x[3], x[4], x[5], x[6], x[7], x[8])
 e = x_pos - s
 cf = transpose(e) @ Qe @ e + transpose(x_velAtt) @ Q @ x_velAtt + transpose(u) @ R @ u
 
-f  = Function('f', [x, u, s], [xdot, cf])  # Casadi function retrieving dynamics and cost value
-fs = Function('f', [x, u], [xdot])  # Casadi function retrieving dynamics only
+f  = Function('f', [x, u, s], [xdot, cf])   # Casadi function retrieving dynamics and cost value
+fs = Function('f', [x, u], [xdot])          # Casadi function retrieving dynamics only
 
 # Integrator (Fixed step Runge-Kutta 4)
 Xi = MX.sym('Xi', 9, 1)
@@ -97,7 +97,7 @@ x_end, c = F(x[:,N-1],u[:,N-1],T/N,s)
 XN = vertcat(x_end[0], x_end[1], x_end[2]) - s
 XN = vertcat(XN, x_end[3], x_end[4], x_end[5], x_end[6], x_end[7], x_end[8])
 opti.subject_to(x[:,N] == x_end)
-cost = cost + transpose(XN) @ P @ XN
+cost = cost + transpose(XN) @ P @ XN    # Add final state cost
 opti.minimize(cost)                     # Optimization objective
 
 px = x[0,:]                             # Horizontal x position

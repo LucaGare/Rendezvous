@@ -264,16 +264,16 @@ int main(int argc, char **argv){
             // Function input and output
             const double UGVxi[] = {x0_UGV[0], x0_UGV[1], x0_UGV[2], x0_UGV[3]};                  // UGV input 1 (current state)
             const double UGVu[]  = {current_UGVsetpoint.linear.x, current_UGVsetpoint.linear.y};  // UGV input 2 (current setpoint)
-            double UGVxf[4];              // UGV MPC output (next state)
+            double UGVxf[4];                // UGV MPC output (next state)
 
             double az_cmd = verticalAcceleration_from_thrust(current_UAVsetpoint.thrust, x0_UAV);
             eulerAngles ea_cmd = euler_from_quat(current_UAVsetpoint.orientation);
 
             const double UAVxi[] = {x0_UAV[0], x0_UAV[1], x0_UAV[2], x0_UAV[3], x0_UAV[4], x0_UAV[5], x0_UAV[6], x0_UAV[7], x0_UAV[8]}; // UAV input 1 (current state)
             const double UAVu[] = {az_cmd, ea_cmd.roll, ea_cmd.pitch, ea_cmd.yaw};  // UAV input 2 (current setpoint)
-            double UAVxf[9];   // UAV MPC output (next state)
+            double UAVxf[9];                // UAV MPC output (next state)
 
-            const double DT[] = {1./100}; // MPCs input (timestep), needs to match 1/PublicationRate
+            const double DT[] = {1./100};   // MPCs input (timestep), needs to match 1/PublicationRate
 
             // Allocate memory (thread-safe)
             UAVincref();
@@ -444,10 +444,8 @@ eulerAngles euler_from_quat(geometry_msgs::Quaternion q){
 double verticalAcceleration_from_thrust(double T, std::vector<double> x){
     double az_cmd;
 
-    double g = 9.81; // acceleration of gravity [m/s^2]
-//    double hoovering_T = 0.363; // hoovering nondimensional thrust [-]
-//    double hoovering_T = 0.332; // hoovering nondimensional thrust [-]
-    double hoovering_T = 0.35; // hoovering nondimensional thrust [-]
+    double g = 9.81;            // acceleration of gravity [m/s^2]
+    double hoovering_T = 0.35;  // hovering nondimensional thrust [-]
     double TMax  = g/hoovering_T;   // maximum "thrust" (acceleration at maximum thrust) [m/s^2]
 
     az_cmd = T*TMax*cos(x[6])*cos(x[7]) - g;

@@ -77,8 +77,8 @@ int main(int argc, char **argv)
     // setpoint publishing rate
     ros::Rate rate(40.0);
 
-    /*int count0 = 0;        // NOTE: this loop is to be sure to have messages from qualisys before proceding,
-    while(count0 < 5){     // it can be erased when using this code outside of the simulation
+    /*int count0 = 0;        // NOTE: this loop is to be sure to have messages from the simulator before proceding,
+    while(count0 < 5){     // it can be commented out when using this code outside of the simulation
         count0++;
         ros::spinOnce();
         rate.sleep();
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     geometry_msgs::Point initial_rendezvous;
     initial_rendezvous.x = (current_pose.pose.position.x + UAVcurrent_pose.pose.position.x)/2;
     initial_rendezvous.y = (current_pose.pose.position.y + UAVcurrent_pose.pose.position.y)/2;
-    initial_rendezvous.z = 0.85; // "landed" altitude: 571mm --> setpoint slightly higher
+    initial_rendezvous.z = 0.85; 
 
     // Initialize things for the MPC algorithm
     std::string const package_path = ros::package::getPath("Rendezvous");
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
             initial_rendezvous.y = (UAVcurrent_pose.pose.position.y + current_pose.pose.position.y)/2;
 
             if (current_UAVstate.mode == "OFFBOARD"){
-                /*// TO BE USED IN SIL TESTS (since the UAV is in offboard mode since the beginning)
+                /*// TO BE USED IN SIL TESTS (since the UAV is in offboard mode since the beginning in the simulator)
                 if(j<10){               
                     ros::spinOnce();    
                     rate.sleep();

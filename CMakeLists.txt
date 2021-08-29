@@ -45,15 +45,6 @@ add_executable(mocap_odometry_to_fcu
 add_executable(simulator_node
   src/simulator_node.cpp
 )
-add_executable(UAVoffboard_node
-  src/UAVoffboard_node.cpp
-)
-add_executable(UGVoffboard_node
-  src/UGVoffboard_node.cpp
-)
-add_executable(centralized_rendezvous
-  src/Centralized_Rendezvous.cpp
-)
 add_executable(distributed_UAVoffboard_node
   src/distributed_UAVoffboard_node.cpp
 )
@@ -78,19 +69,6 @@ target_link_libraries(simulator_node
   RK4_UGV
   ${CMAKE_DL_LIBS}
   ${catkin_LIBRARIES} 
-)
-target_link_libraries(UAVoffboard_node
-  MPC
-  ${CMAKE_DL_LIBS}
-  ${catkin_LIBRARIES} 
-)
-target_link_libraries(UGVoffboard_node
-  MPC_UGV
-  ${CMAKE_DL_LIBS}
-  ${catkin_LIBRARIES} 
-)
-target_link_libraries(centralized_rendezvous
-  ${catkin_LIBRARIES}
 )
 target_link_libraries(distributed_UAVoffboard_node
   MPC

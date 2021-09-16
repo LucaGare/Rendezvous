@@ -14,6 +14,10 @@ catkin_make
 ```
 
 If necessary, rebuild the shared libraries "MPC.so", "MPC_UGV.so", "rk4.so" and "rk4_UGV.so" in the folder "src/SharedLibs" from the code "MPC.c", "MPC_UGV.c", "rk4.c" and "rk4_UGV.c" in the same folder.
+As a reference:
+```
+gcc -fPIC -shared -O3 MPC.c -o MPC.so
+```
 
 ## Usage
 **SIMULATION**
